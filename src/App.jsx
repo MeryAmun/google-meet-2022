@@ -1,20 +1,22 @@
-import React, {useEffect, useReducer} from 'react';
+import React, {useEffect} from 'react';
 import dbRef,{db, userName, connectedRef} from './server/firebase';
-import { connect } from 'react-redux';
-import { initalState, meetReducer } from './store/reducer';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import { setUser,addParticipant, removeParticipant } from './store/actionCreators';
+import { MainScreen } from './components';
 
 
-const App = (props) => {
+const App = () => {
     //const [state, dispatch ] = useReducer(meetReducer, initalState )
+    const dispatch = useDispatch()
+    const {currentUser, participants } = useSelector((state) => state)
     const participantsRef = dbRef.child("participants")
-    const getUserStream = async () => {
-        const localStream = await navigator.mediaDevices.getUserMedia({
-            audio:true,
-            video:true
-        });
-        return localStream;
-    };
+    // const getUserStream = async () => {
+    //     const localStream = await navigator.mediaDevices.getUserMedia({
+    //         audio:true,
+    //         video:true
+    //     });
+    //     return localStream;
+    // };
 
     useEffect(() => {
         connectedRef.on("value", (snap) => {
@@ -29,12 +31,12 @@ const App = (props) => {
                     preference:defaultPreferences
 
                 });
-                props.setUser({
+                dispatch(setUser({
                     [userRef.key]:{
                         userName,
                         ...defaultPreferences
                     }
-                })
+                }))
                 userRef.onDisconnect().remove()
             }
         });
@@ -44,21 +46,21 @@ const App = (props) => {
     }, [])
     
     useEffect(() => {
-     if(props.user){
+     if(currentUser){
         participantsRef.on("child_added", (snap) => {
             const {userName, preferences} = snap.val();
-            props.addParticipant({
-                [snap.key]:{
-                    userName,
-                    ...preferences
-                }
-            })
+           dispatch(addParticipant({
+            [snap.key]:{
+                userName,
+                ...preferences
+            }
+        }))
         })
         participantsRef.on("child_removed", (snap) => {
-            props.removeParticipant(snap.key)
+            dispatch(removeParticipant(snap.key))
         })
      }
-    }, [props.user])
+    }, [currentUser])
     
 
     // useEffect( async () => {
@@ -69,24 +71,28 @@ const App = (props) => {
     
   return (
     <div>
-        <h3>{JSON.stringify(props.user)}</h3>
-        <h3>{JSON.stringify(props.participant)}</h3>
+          <MainScreen/>
+        {/* <h3>Current User: {JSON.stringify(currentUser)}</h3> <br />
+        <h3>Participants: {JSON.stringify(participants)}</h3> */}
+      
     </div>
   )
 }
 
-const mapStateToProps = (state) => {
-    return {
-        user:state.currentUser,
-        participants:state.participants
-    }
-}
-const mapDispatchToProps = (dispatch) => {
-   return {
-        setUser: (user) => dispatch(setUser(user)),
-    addParticipant: (participant) => dispatch(addParticipant(participant)),
-    removeParticipant: (participantId) => dispatch(removeParticipant(participantId))
-   }
-}
 
-export default connect(mapStateToProps,mapDispatchToProps)(App)
+
+export default App 
+//connect(mapStateToProps,mapDispatchToProps)(App)
+// const mapStateToProps = (state) => {
+//     return {
+//         user: state.currentUser,
+//         participants: state.participants
+//     }
+// }
+// const mapDispatchToProps = (dispatch) => {
+//    return {
+//         setUser: (user) => dispatch(setUser(user)),
+//     addParticipant: (participant) => dispatch(addParticipant(participant)),
+//     removeParticipant: (participantKey) => dispatch(removeParticipant(participantKey))
+//    }
+// }
