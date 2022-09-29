@@ -1,6 +1,18 @@
 import * as actionTypes from './actionTypes'
 
 
+
+export const setMainStream = (stream) => {
+    return {
+        type:actionTypes.SET_MAIN_STREAM,
+        payload:{
+            mainStream: stream
+        }
+    }
+}
+
+
+
 export const setUser = (user) => {
 
     return  { 
@@ -28,6 +40,24 @@ export const removeParticipant = (participantKey) => {
 participantKey
         }
     }
+   }
+
+   export const updateUser = (user) => {
+       return {
+  type:actionTypes.UPDATE_USER,
+  payload:{
+      currentUser:user
+  }
+       }
+   }
+
+   export const updateParticipant = (user) => {
+  return {
+      type:actionTypes.UPDATE_PARTICIPANT,
+      payload:{
+         newUser:user
+      }
+  }
    }
 
 
